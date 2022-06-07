@@ -60,25 +60,92 @@ void memoryConstructor_01(Memory *auxMemory, int value, int address) {
 /* - - - - - - Instrucao - - - - - - */
 typedef struct 
 {
-	int value;
-	int address;
 	char type[15];
-	Recorder recorder;
+	Recorder recorder_00;
+	Recorder recorder_01;
+	Recorder recorder_02;
 } Instruction;
 
 void instructionConstructor_00(Instruction *auxInstruction) {
-	auxInstruction->value = -1;
-	auxInstruction->address = -1;	
 	strcpy (auxInstruction->type, "");
-	recorderConstructor_00(&auxInstruction->recorder);
+	recorderConstructor_00(&auxInstruction->recorder_00);
+	recorderConstructor_00(&auxInstruction->recorder_01);
+	recorderConstructor_00(&auxInstruction->recorder_02);
 }
 
-void instructionConstructor_01(Instruction *auxInstruction, int value, int address, char type[], Recorder recorder) {
-	auxInstruction->value = value;
-	auxInstruction->address = address;
+void instructionConstructor_01(Instruction *auxInstruction, char type[], Recorder *recorder_00, Recorder *recorder_01, Recorder *recorder_02) {
 	strcpy (auxInstruction->type, type);
-	auxInstruction->recorder = recorder;
+
+	auxInstruction->recorder_00.busy = recorder_00->busy;
+	auxInstruction->recorder_00.value = recorder_00->value;
+	auxInstruction->recorder_00.address = recorder_00->address;
+
+	auxInstruction->recorder_01.busy = recorder_01->busy;
+	auxInstruction->recorder_01.value = recorder_01->value;
+	auxInstruction->recorder_01.address = recorder_01->address;
+
+	auxInstruction->recorder_02.busy = recorder_02->busy;
+	auxInstruction->recorder_02.value = recorder_02->value;
+	auxInstruction->recorder_02.address = recorder_02->address;
 }
+
+/*
+	Title: Unidades de Armazenamento
+	Obs: Abaixo temos structs que representam unidades
+	que armazenam informaoes.
+*/
+
+typedef struct 
+{
+	Instruction instructions[LENGTH_INSTRUCTIONS];
+} InstructionComponent;
+
+void instructionUnitToString(InstructionComponent *instructions) 
+{
+	printf("\n\t --- Instrucoes ---\n");
+
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
+	{
+		printf("Tipo: %s | ", instructionComponent->instructions[i].type); 
+		printf("Endereco: %d | ", instructionComponent->instructions[i].address); 
+		printf("Valor: %d", instructionComponent->instructions[i].value);
+	}
+
+	printf("\t --- \n");
+}
+
+void createInstructions(InstructionComponent *instructionComponent) 
+{
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 5) 
+	{
+		instructionConstructor_01(instructionComponent->instructions[i], "add", );
+		instructionConstructor_01(instructionComponent->instructions[i+1], "subtraction", );
+		instructionConstructor_01(instructionComponent->instructions[i+2], "multiplication", );
+		instructionConstructor_01(instructionComponent->instructions[i+3], "division", );
+		instructionConstructor_01(instructionComponent->instructions[i+4], "add", );
+	}
+}
+
+typedef struct 
+{
+	Recorder recorders[LENGTH_RECORDER];
+} RecorderPFComponent;
+
+void createRecorderFP(RecorderPFComponent *recorderPFComponent) 
+{
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 5) 
+	{
+		recorderConstructor_01(instructionComponent->instructions[i], "add", );
+		recorderConstructor_01(instructionComponent->instructions[i+1], "subtraction", );
+		recorderConstructor_01(instructionComponent->instructions[i+2], "multiplication", );
+		recorderConstructor_01(instructionComponent->instructions[i+3], "division", );
+	}
+}
+
+typedef struct 
+{
+	Memory data[LENGTH_MEMORY];
+} MemoryComponent;
 
 /*
 	Title: Unidades de Operacao
@@ -94,14 +161,15 @@ typedef struct
 	Recorder recorder_00; // unidade de destino
 	Recorder recorder_01; // unidade variavel 
 	Recorder recorder_02; // unidade variavel
+	MemoryComponent memory;
 } MemoryUnit;
 
 void memoryUnitToString(MemoryUnit *memory) 
 {
 	printf("\n\t --- Dados da Memoria ---\n");
-	printf("Unidade de destino: %d | Busy: %d \n", memory->recorder_00.value, memory->recorder_00.busy);
-	printf("Unidade variavel: %d | Busy: %d \n", memory->recorder_01.value, memory->recorder_01.busy);
-	printf("Unidade variavel: %d | Busy: %d \n", memory->recorder_02.value, memory->recorder_02.busy);
+	printf("Unidade de destino: %d | Busy: %d | Address: %d \n", memory->recorder_00.value, memory->recorder_00.busy, memory->recorder_00.address);
+	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", memory->recorder_01.value, memory->recorder_01.busy, memory->recorder_01.address);
+	printf("Unidade variavel: %d | Busy: %d Address: %d \n", memory->recorder_02.value, memory->recorder_02.busy, memory->recorder_02.address);
 }
 
 void load(MemoryUnit *memory) 
@@ -112,7 +180,7 @@ void load(MemoryUnit *memory)
 	memory->recorder_02.busy = true;
 
 	// Fazer operacao
-	memory->recorder_00.value = memory->recorder_01.value + memory->recorder_02.value;
+	memory->recorder_00.value = memory->memory[memory->recorder_01.value + memory->recorder_02.address];
 
 	// Marcar como nao sendo usado
 	memory->recorder_00.busy = false;
@@ -128,7 +196,7 @@ void store(MemoryUnit *memory)
 	memory->recorder_02.busy = true;
 
 	// Fazer operacao
-	memory->recorder_00.value = memory->recorder_01.value + memory->recorder_02.value;
+	memory->memory[memory->recorder_01.value + memory->recorder_02.address] = memory->recorder_00.value;
 
 	// Marcar como nao sendo usado
 	memory->recorder_00.busy = false;
@@ -145,12 +213,35 @@ typedef struct
 	Recorder recorder_02; // unidade variavel
 } ArithmeticUnit;
 
+void arithmeticUnitConstructor_00(ArithmeticUnit *auxArithmetic) {
+	auxArithmetic->busy = false;
+	recorderConstructor_00(&auxArithmetic->recorder_00);
+	recorderConstructor_00(&auxArithmetic->recorder_01);
+	recorderConstructor_00(&auxArithmetic->recorder_02);
+}
+
+void arithmeticUnitConstructor_01(ArithmeticUnit *auxArithmetic, bool busy, Recorder *recorder_00, Recorder *recorder_01, Recorder *recorder_02) {
+	auxArithmetic->busy = false;
+
+	auxArithmetic->recorder_00.busy = recorder_00->busy;
+	auxArithmetic->recorder_00.value = recorder_00->value;
+	auxArithmetic->recorder_00.address = recorder_00->address;
+
+	auxArithmetic->recorder_01.busy = recorder_01->busy;
+	auxArithmetic->recorder_01.value = recorder_01->value;
+	auxArithmetic->recorder_01.address = recorder_01->address;
+
+	auxArithmetic->recorder_02.busy = recorder_02->busy;
+	auxArithmetic->recorder_02.value = recorder_02->value;
+	auxArithmetic->recorder_02.address = recorder_02->address;
+}
+
 void arithmeticUnitToString(ArithmeticUnit *arithmetic) 
 {
 	printf("\n\t --- Dados da Unidade Aritmetica ---\n");
-	printf("Unidade de destino: %d | Busy: %d \n", arithmetic->recorder_00.value, arithmetic->recorder_00.busy);
-	printf("Unidade variavel: %d | Busy: %d \n", arithmetic->recorder_01.value, arithmetic->recorder_01.busy);
-	printf("Unidade variavel: %d | Busy: %d \n", arithmetic->recorder_02.value, arithmetic->recorder_02.busy);
+	printf("Unidade de destino: %d | Busy: %d | Address: %d \n", arithmetic->recorder_00.value, arithmetic->recorder_00.busy, arithmetic->recorder_00.address);
+	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", arithmetic->recorder_01.value, arithmetic->recorder_01.busy, arithmetic->recorder_01.address);
+	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", arithmetic->recorder_02.value, arithmetic->recorder_02.busy, arithmetic->recorder_01.address);
 }
 
 void sum(ArithmeticUnit *arithmetic) 
@@ -217,43 +308,32 @@ void division(ArithmeticUnit *arithmetic)
 	arithmetic->recorder_02.busy = false;
 }
 
-/*
-	Title: Unidades de Armazenamento
-	Obs: Abaixo temos structs que representam unidades
-	que armazenam informaoes.
-*/
-
-typedef struct 
-{
-	Instruction instructions[LENGTH_INSTRUCTIONS];
-} InstructionComponent;
-
-void instructionUnitToString(InstructionComponent *instructions) 
-{
-	printf("\n\t --- Instrucoes ---\n");
-
-	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
-	{
-		printf("Tipo: %s | ", instructions->instructions[i].type); 
-		printf("Endereco: %d | ", instructions->instructions[i].address); 
-		printf("Valor: %d", instructions->instructions[i].value);
-	}
-
-	printf("\t --- \n");
-}
-
-typedef struct 
-{
-	Instruction instructions[LENGTH_RECORDER];
-} RecorderPFComponent;
-
-typedef struct 
-{
-	Memory data[LENGTH_MEMORY];
-} MemoryComponent;
-
 int main(void) 
 {
+	char type[15];
+	Instruction instruction_01, instruction_02, instruction_03, instruction_04;
+
+	createInstructions();
+
+	instructionConstructor_01(&instruction_01, "add", &recorder_01, &recorder_02, &recorder_03)
+	instructionConstructor_01(&instruction_02, "subtraction", &recorder_01, &recorder_02, &recorder_03)
+	instructionConstructor_01(&instruction_02, "multiplication", &recorder_01, &recorder_02, &recorder_03)
+	instructionConstructor_01(&instruction_02, "division", &recorder_01, &recorder_02, &recorder_03)
+
+	strcpy(type, instruction_01.type)
+
+	switch() {
+		case :
+			break;
+		case :
+			break;
+		case :
+			break;
+		case :
+			break;
+		default:
+			printf("ERRO: Operacao nao reconhecida!!! \n");
+	}
 
 	return 0;
 }
