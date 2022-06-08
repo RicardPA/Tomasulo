@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <omp.h>
 
 /*
 	Title: Variaveis Globais
@@ -13,6 +14,7 @@
 #define LENGTH_MEMORY 20
 #define LENGTH_RECORDER 5
 #define LENGTH_INSTRUCTIONS 500
+#define NUM_THREADS 2
 
 /*
 	Title: Celulas de Componentes
@@ -464,7 +466,6 @@ int main(void)
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
 	}
-
 	memoryComponentToString(&memoryComponent);
 	
 	return 0;
