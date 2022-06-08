@@ -11,8 +11,8 @@
 */
 
 #define LENGTH_MEMORY 5
-#define LENGTH_RECORDER 5
-#define LENGTH_INSTRUCTIONS 5
+#define LENGTH_RECORDER 3
+#define LENGTH_INSTRUCTIONS 10
 
 /*
 	Title: Celulas de Componentes
@@ -28,12 +28,6 @@ typedef struct
 	int address;
 } Recorder;
 
-void recorderConstructor_00(Recorder *auxRecorder) {
-	auxRecorder->value = -1;
-	auxRecorder->busy = false;
-	auxRecorder->address = -1;	
-}
-
 void recorderConstructor_01(Recorder *auxRecorder, int value, bool busy, int address) {
 	auxRecorder->value = value;
 	auxRecorder->busy = busy;
@@ -43,7 +37,7 @@ void recorderConstructor_01(Recorder *auxRecorder, int value, bool busy, int add
 void recorderToString(Recorder *auxRecorder) {
 	printf("Valor: %d | ", auxRecorder->value);
 	printf("Usado: %d | ",auxRecorder->busy);
-	printf("Endereco: %d", auxRecorder->address);	
+	printf("Endereco: %d \n", auxRecorder->address);	
 }
 
 /* - - - - - - Memoria - - - - - - */
@@ -91,12 +85,22 @@ typedef struct
 
 void createRecorderFP(RecorderPFComponent *recorderPFComponent) 
 {
-	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
+	for(int i = 0; i < LENGTH_RECORDER; i++) 
 	{
 		recorderConstructor_01(&recorderPFComponent->recorders[i], i, false, i);
 	}
 }
 
+void recorderFPToString(RecorderPFComponent *recorderPFComponent) 
+{
+	printf("|--- Registradores ---\n");
+	for(int i = 0; i < LENGTH_RECORDER; i++) 
+	{
+		printf("| ");
+		recorderToString(&recorderPFComponent->recorders[i]);
+	}
+	printf("|------------------------------\n");
+}
 /* - - - - - - Lista de Instrucao - - - - - - */
 
 typedef struct 
@@ -355,7 +359,10 @@ int main(void)
 
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		printf("\n|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
+		printf("\n||||||||||||||||||||||||||||\n");
+		
+		recorderFPToString(&recorderPFComponent);
+
 		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) {
 			while(arithmeticSubSumComponent.busy);
 
@@ -455,7 +462,6 @@ int main(void)
 		} else {
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
-		printf("\n|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
 	}
 
 	memoryComponentToString(&memoryComponent);
