@@ -10,9 +10,9 @@
 	aquitetura.
 */
 
-#define LENGTH_MEMORY 30 
-#define LENGTH_RECORDER 30
-#define LENGTH_INSTRUCTIONS 30
+#define LENGTH_MEMORY 36
+#define LENGTH_RECORDER 36
+#define LENGTH_INSTRUCTIONS 36
 
 /*
 	Title: Celulas de Componentes
@@ -127,13 +127,14 @@ void instructionUnitToString(InstructionComponent *instructionComponent)
 
 void createInstructions(InstructionComponent *instructionComponent, RecorderPFComponent *recorderPFComponent) 
 {
-	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 5) 
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 6) 
 	{
 		instructionConstructor_01(&instructionComponent->instructions[i], "add", &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i+3]);
 		instructionConstructor_01(&instructionComponent->instructions[i+1], "sub", &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+2]);
-		instructionConstructor_01(&instructionComponent->instructions[i+2], "mul", &recorderPFComponent->recorders[i+2], &recorderPFComponent->recorders[i+2], &recorderPFComponent->recorders[i]);
+		instructionConstructor_01(&instructionComponent->instructions[i+2], "mul", &recorderPFComponent->recorders[i+2], &recorderPFComponent->recorders[i+2], &recorderPFComponent->recorders[i+4]);
 		instructionConstructor_01(&instructionComponent->instructions[i+3], "div", &recorderPFComponent->recorders[i+3], &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+2]);
-		instructionConstructor_01(&instructionComponent->instructions[i+4], "add", &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i+3]);
+		instructionConstructor_01(&instructionComponent->instructions[i+4], "load", &recorderPFComponent->recorders[i+5], &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i+3]);
+		instructionConstructor_01(&instructionComponent->instructions[i+5], "store", &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+1]);
 	}
 }
 
@@ -172,6 +173,7 @@ void createMemoryComponent(MemoryComponent *memoryComponent)
 typedef struct 
 {
 	bool busy;
+	char type[15];
 	Recorder *recorder_00; // unidade de destino
 	Recorder *recorder_01; // unidade variavel 
 	Recorder *recorder_02; // unidade variavel
@@ -180,21 +182,29 @@ typedef struct
 
 void memoryUnitToString(MemoryUnit *memory) 
 {
-	printf("\n\t --- Dados da Memoria ---\n");
+	// Variaveis
+	int position = (memory->recorder_01->value + memory->recorder_02->value)%LENGTH_MEMORY;
+
+	printf("\n\t --- Dados da Memoria (%s) ---\n", memory->type);
 	printf("Unidade de destino: %d | Busy: %d | Address: %d \n", memory->recorder_00->value, memory->recorder_00->busy, memory->recorder_00->address);
 	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", memory->recorder_01->value, memory->recorder_01->busy, memory->recorder_01->address);
 	printf("Unidade variavel: %d | Busy: %d Address: %d \n", memory->recorder_02->value, memory->recorder_02->busy, memory->recorder_02->address);
+	printf("Memoria (Valor: %d | ", memory->memory->data[position].value);
+	printf("Endereco: %d)\n", memory->memory->data[position].address);
 }
 
 void load(MemoryUnit *memory) 
 {
+	// Variaveis 
+	int position = (memory->recorder_01->value + memory->recorder_02->value)%LENGTH_MEMORY;
+
 	// Marcar como sendo usado
 	memory->recorder_00->busy = true;
 	memory->recorder_01->busy = true;
 	memory->recorder_02->busy = true;
 
 	// Fazer operacao
-	memory->recorder_00->value = memory->memory->data[memory->recorder_01->value + memory->recorder_02->value].value;
+	memory->recorder_00->value = memory->memory->data[position].value;
 
 	// Marcar como nao sendo usado
 	memory->recorder_00->busy = false;
@@ -204,13 +214,16 @@ void load(MemoryUnit *memory)
 
 void store(MemoryUnit *memory) 
 {
+	// Variaveis
+	int position = (memory->recorder_01->value + memory->recorder_02->value)%LENGTH_MEMORY;
+
 	// Marcar como sendo usado
 	memory->recorder_00->busy = true;
 	memory->recorder_01->busy = true;
 	memory->recorder_02->busy = true;
 
 	// Fazer operacao
-	memory->memory->data[memory->recorder_01->value + memory->recorder_02->value].value = memory->recorder_00->value;
+	memory->memory->data[position].value = memory->recorder_00->value;
 
 	// Marcar como nao sendo usado
 	memory->recorder_00->busy = false;
@@ -316,21 +329,22 @@ void division(ArithmeticUnit *arithmetic)
 
 int main(void) 
 {
-	printf("Aqui 1\n");
+	// Componentes
 	InstructionComponent instructionComponent;
 	RecorderPFComponent recorderPFComponent;
-	ArithmeticUnit arithmeticSubSumComponent, arithmeticMulDivComponent;
 	MemoryComponent memoryComponent;
+	// Unidades de operacao
+	ArithmeticUnit arithmeticSubSumComponent, arithmeticMulDivComponent;
+	MemoryUnit memoryLoadStoreComponent;
 
 	createMemoryComponent(&memoryComponent);
 	createRecorderFP(&recorderPFComponent);
 	createInstructions(&instructionComponent, &recorderPFComponent);
-	
-	printf("Aqui 2\n"); 
+
+	memoryComponentToString(&memoryComponent);
 
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		printf("Aqui FOR(%d)\n", i);
 		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) {
 			arithmeticSubSumComponent.busy = true;
 			strcpy(arithmeticSubSumComponent.type, "add");
@@ -384,17 +398,35 @@ int main(void)
 				printf("\nERRO: Divisao por zero detectada.\n");
 			}
 		} else if (strcmp(instructionComponent.instructions[i].type, "load") == 0) {
+			memoryLoadStoreComponent.busy = true;
+			strcpy(memoryLoadStoreComponent.type, "load");
+			memoryLoadStoreComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
+			memoryLoadStoreComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
+			memoryLoadStoreComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
+			memoryLoadStoreComponent.memory = &memoryComponent;
 
+			memoryUnitToString(&memoryLoadStoreComponent);
+			load(&memoryLoadStoreComponent);
+			memoryUnitToString(&memoryLoadStoreComponent);
+
+			memoryLoadStoreComponent.busy = false;
 		} else if (strcmp(instructionComponent.instructions[i].type, "store") == 0) {
+			memoryLoadStoreComponent.busy = true;
+			strcpy(memoryLoadStoreComponent.type, "store");
+			memoryLoadStoreComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
+			memoryLoadStoreComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
+			memoryLoadStoreComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
+			memoryLoadStoreComponent.memory = &memoryComponent;
 
+			memoryUnitToString(&memoryLoadStoreComponent);
+			store(&memoryLoadStoreComponent);
+			memoryUnitToString(&memoryLoadStoreComponent);
+
+			memoryLoadStoreComponent.busy = false;
 		} else {
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
 	}
-
-	memoryComponentToString(&memoryComponent);
-
-	printf("Aqui 3\n");
-
+	
 	return 0;
 }
