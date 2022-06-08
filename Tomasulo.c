@@ -144,11 +144,20 @@ typedef struct
 	Memory data[LENGTH_MEMORY];
 } MemoryComponent;
 
+void memoryComponentToString(MemoryComponent *memoryComponent) 
+{
+	printf("--- Memoria ---\n");
+	for(int i = 0; i < LENGTH_MEMORY; i++) 
+	{
+		printf("Valor: %d | Endereco: %d\n", memoryComponent->data[i].value, memoryComponent->data[i].address);
+	}
+}
+
 void createMemoryComponent(MemoryComponent *memoryComponent) 
 {
 	for(int i = 0; i < LENGTH_MEMORY; i++) 
 	{
-		memoryConstructor_01(&memoryComponent->data[i], i, i);
+		memoryConstructor_01(&memoryComponent->data[i], 0, i);
 	}
 }
 
@@ -166,7 +175,7 @@ typedef struct
 	Recorder *recorder_00; // unidade de destino
 	Recorder *recorder_01; // unidade variavel 
 	Recorder *recorder_02; // unidade variavel
-	MemoryComponent memory;
+	MemoryComponent *memory;
 } MemoryUnit;
 
 void memoryUnitToString(MemoryUnit *memory) 
@@ -185,7 +194,7 @@ void load(MemoryUnit *memory)
 	memory->recorder_02->busy = true;
 
 	// Fazer operacao
-	memory->recorder_00->value = memory->memory.data[memory->recorder_01->value + memory->recorder_02->value].value;
+	memory->recorder_00->value = memory->memory->data[memory->recorder_01->value + memory->recorder_02->value].value;
 
 	// Marcar como nao sendo usado
 	memory->recorder_00->busy = false;
@@ -201,7 +210,7 @@ void store(MemoryUnit *memory)
 	memory->recorder_02->busy = true;
 
 	// Fazer operacao
-	memory->memory.data[memory->recorder_01->value + memory->recorder_02->value].value = memory->recorder_00->value;
+	memory->memory->data[memory->recorder_01->value + memory->recorder_02->value].value = memory->recorder_00->value;
 
 	// Marcar como nao sendo usado
 	memory->recorder_00->busy = false;
@@ -382,6 +391,8 @@ int main(void)
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
 	}
+
+	memoryComponentToString(&memoryComponent);
 
 	printf("Aqui 3\n");
 
