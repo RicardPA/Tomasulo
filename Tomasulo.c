@@ -40,6 +40,12 @@ void recorderConstructor_01(Recorder *auxRecorder, int value, bool busy, int add
 	auxRecorder->address = address;
 }
 
+void recorderToString(Recorder *auxRecorder) {
+	printf("Valor: %d | ", auxRecorder->value);
+	printf("Usado: %d | ",auxRecorder->busy);
+	printf("Endereco: %d", auxRecorder->address);	
+}
+
 /* - - - - - - Memoria - - - - - - */
 typedef struct 
 {
@@ -61,32 +67,16 @@ void memoryConstructor_01(Memory *auxMemory, int value, int address) {
 typedef struct 
 {
 	char type[15];
-	Recorder recorder_00;
-	Recorder recorder_01;
-	Recorder recorder_02;
+	Recorder *recorder_00;
+	Recorder *recorder_01;
+	Recorder *recorder_02;
 } Instruction;
-
-void instructionConstructor_00(Instruction *auxInstruction) {
-	strcpy (auxInstruction->type, "");
-	recorderConstructor_00(&auxInstruction->recorder_00);
-	recorderConstructor_00(&auxInstruction->recorder_01);
-	recorderConstructor_00(&auxInstruction->recorder_02);
-}
 
 void instructionConstructor_01(Instruction *auxInstruction, char type[], Recorder *recorder_00, Recorder *recorder_01, Recorder *recorder_02) {
 	strcpy (auxInstruction->type, type);
-
-	auxInstruction->recorder_00.busy = recorder_00->busy;
-	auxInstruction->recorder_00.value = recorder_00->value;
-	auxInstruction->recorder_00.address = recorder_00->address;
-
-	auxInstruction->recorder_01.busy = recorder_01->busy;
-	auxInstruction->recorder_01.value = recorder_01->value;
-	auxInstruction->recorder_01.address = recorder_01->address;
-
-	auxInstruction->recorder_02.busy = recorder_02->busy;
-	auxInstruction->recorder_02.value = recorder_02->value;
-	auxInstruction->recorder_02.address = recorder_02->address;
+	auxInstruction->recorder_00 = recorder_00;
+	auxInstruction->recorder_01 = recorder_01;
+	auxInstruction->recorder_02 = recorder_02;
 }
 
 /*
@@ -95,36 +85,7 @@ void instructionConstructor_01(Instruction *auxInstruction, char type[], Recorde
 	que armazenam informaoes.
 */
 
-typedef struct 
-{
-	Instruction instructions[LENGTH_INSTRUCTIONS];
-} InstructionComponent;
-
-void instructionUnitToString(InstructionComponent *instructions) 
-{
-	printf("\n\t --- Instrucoes ---\n");
-
-	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
-	{
-		printf("Tipo: %s | ", instructionComponent->instructions[i].type); 
-		printf("Endereco: %d | ", instructionComponent->instructions[i].address); 
-		printf("Valor: %d", instructionComponent->instructions[i].value);
-	}
-
-	printf("\t --- \n");
-}
-
-void createInstructions(InstructionComponent *instructionComponent) 
-{
-	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 5) 
-	{
-		instructionConstructor_01(instructionComponent->instructions[i], "add", );
-		instructionConstructor_01(instructionComponent->instructions[i+1], "subtraction", );
-		instructionConstructor_01(instructionComponent->instructions[i+2], "multiplication", );
-		instructionConstructor_01(instructionComponent->instructions[i+3], "division", );
-		instructionConstructor_01(instructionComponent->instructions[i+4], "add", );
-	}
-}
+/* - - - - - - Banco de Registradores - - - - - - */
 
 typedef struct 
 {
@@ -133,19 +94,63 @@ typedef struct
 
 void createRecorderFP(RecorderPFComponent *recorderPFComponent) 
 {
-	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 5) 
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		recorderConstructor_01(instructionComponent->instructions[i], "add", );
-		recorderConstructor_01(instructionComponent->instructions[i+1], "subtraction", );
-		recorderConstructor_01(instructionComponent->instructions[i+2], "multiplication", );
-		recorderConstructor_01(instructionComponent->instructions[i+3], "division", );
+		recorderConstructor_01(&recorderPFComponent->recorders[i], i, false, i);
 	}
 }
+
+/* - - - - - - Lista de Instrucao - - - - - - */
+
+typedef struct 
+{
+	Instruction instructions[LENGTH_INSTRUCTIONS];
+} InstructionComponent;
+
+void instructionUnitToString(InstructionComponent *instructionComponent) 
+{
+	printf("\n\t --- Instrucoes ---\n");
+
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
+	{
+		printf("Tipo: %s | ", instructionComponent->instructions[i].type); 
+		printf("\nDestino \n\t"); 
+		recorderToString(instructionComponent->instructions[i].recorder_00);
+		printf("\nOperando_01 \n\t");
+		recorderToString(instructionComponent->instructions[i].recorder_01);
+		printf("\nOperando_02 \n\t");
+		recorderToString(instructionComponent->instructions[i].recorder_02);
+	}
+
+	printf("\t --- \n");
+}
+
+void createInstructions(InstructionComponent *instructionComponent, RecorderPFComponent *recorderPFComponent) 
+{
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i = i + 5) 
+	{
+		instructionConstructor_01(&instructionComponent->instructions[i], "add", &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i+3]);
+		instructionConstructor_01(&instructionComponent->instructions[i+1], "sub", &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+2]);
+		instructionConstructor_01(&instructionComponent->instructions[i+2], "mul", &recorderPFComponent->recorders[i+2], &recorderPFComponent->recorders[i+2], &recorderPFComponent->recorders[i]);
+		instructionConstructor_01(&instructionComponent->instructions[i+3], "div", &recorderPFComponent->recorders[i+3], &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+2]);
+		instructionConstructor_01(&instructionComponent->instructions[i+4], "add", &recorderPFComponent->recorders[i], &recorderPFComponent->recorders[i+1], &recorderPFComponent->recorders[i+3]);
+	}
+}
+
+/* - - - - - - Memoria Secundaria - - - - - - */
 
 typedef struct 
 {
 	Memory data[LENGTH_MEMORY];
 } MemoryComponent;
+
+void createMemoryComponent(MemoryComponent *memoryComponent) 
+{
+	for(int i = 0; i < LENGTH_MEMORY; i++) 
+	{
+		memoryConstructor_01(&memoryComponent->data[i], i, i);
+	}
+}
 
 /*
 	Title: Unidades de Operacao
@@ -158,182 +163,227 @@ typedef struct
 typedef struct 
 {
 	bool busy;
-	Recorder recorder_00; // unidade de destino
-	Recorder recorder_01; // unidade variavel 
-	Recorder recorder_02; // unidade variavel
+	Recorder *recorder_00; // unidade de destino
+	Recorder *recorder_01; // unidade variavel 
+	Recorder *recorder_02; // unidade variavel
 	MemoryComponent memory;
 } MemoryUnit;
 
 void memoryUnitToString(MemoryUnit *memory) 
 {
 	printf("\n\t --- Dados da Memoria ---\n");
-	printf("Unidade de destino: %d | Busy: %d | Address: %d \n", memory->recorder_00.value, memory->recorder_00.busy, memory->recorder_00.address);
-	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", memory->recorder_01.value, memory->recorder_01.busy, memory->recorder_01.address);
-	printf("Unidade variavel: %d | Busy: %d Address: %d \n", memory->recorder_02.value, memory->recorder_02.busy, memory->recorder_02.address);
+	printf("Unidade de destino: %d | Busy: %d | Address: %d \n", memory->recorder_00->value, memory->recorder_00->busy, memory->recorder_00->address);
+	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", memory->recorder_01->value, memory->recorder_01->busy, memory->recorder_01->address);
+	printf("Unidade variavel: %d | Busy: %d Address: %d \n", memory->recorder_02->value, memory->recorder_02->busy, memory->recorder_02->address);
 }
 
 void load(MemoryUnit *memory) 
 {
 	// Marcar como sendo usado
-	memory->recorder_00.busy = true;
-	memory->recorder_01.busy = true;
-	memory->recorder_02.busy = true;
+	memory->recorder_00->busy = true;
+	memory->recorder_01->busy = true;
+	memory->recorder_02->busy = true;
 
 	// Fazer operacao
-	memory->recorder_00.value = memory->memory[memory->recorder_01.value + memory->recorder_02.address];
+	memory->recorder_00->value = memory->memory.data[memory->recorder_01->value + memory->recorder_02->value].value;
 
 	// Marcar como nao sendo usado
-	memory->recorder_00.busy = false;
-	memory->recorder_01.busy = false;
-	memory->recorder_02.busy = false;
+	memory->recorder_00->busy = false;
+	memory->recorder_01->busy = false;
+	memory->recorder_02->busy = false;
 }
 
 void store(MemoryUnit *memory) 
 {
 	// Marcar como sendo usado
-	memory->recorder_00.busy = true;
-	memory->recorder_01.busy = true;
-	memory->recorder_02.busy = true;
+	memory->recorder_00->busy = true;
+	memory->recorder_01->busy = true;
+	memory->recorder_02->busy = true;
 
 	// Fazer operacao
-	memory->memory[memory->recorder_01.value + memory->recorder_02.address] = memory->recorder_00.value;
+	memory->memory.data[memory->recorder_01->value + memory->recorder_02->value].value = memory->recorder_00->value;
 
 	// Marcar como nao sendo usado
-	memory->recorder_00.busy = false;
-	memory->recorder_01.busy = false;
-	memory->recorder_02.busy = false;
+	memory->recorder_00->busy = false;
+	memory->recorder_01->busy = false;
+	memory->recorder_02->busy = false;
 }
 
 /* - - - - - - Unidade de Aritmetica - - - - - - */
 typedef struct 
 {
 	bool busy;
-	Recorder recorder_00; // unidade de destino
-	Recorder recorder_01; // unidade variavel 
-	Recorder recorder_02; // unidade variavel
+	char type[15];
+	Recorder *recorder_00; // unidade de destino
+	Recorder *recorder_01; // unidade variavel 
+	Recorder *recorder_02; // unidade variavel
 } ArithmeticUnit;
 
 void arithmeticUnitConstructor_00(ArithmeticUnit *auxArithmetic) {
 	auxArithmetic->busy = false;
-	recorderConstructor_00(&auxArithmetic->recorder_00);
-	recorderConstructor_00(&auxArithmetic->recorder_01);
-	recorderConstructor_00(&auxArithmetic->recorder_02);
+	recorderConstructor_00(auxArithmetic->recorder_00);
+	recorderConstructor_00(auxArithmetic->recorder_01);
+	recorderConstructor_00(auxArithmetic->recorder_02);
 }
 
 void arithmeticUnitConstructor_01(ArithmeticUnit *auxArithmetic, bool busy, Recorder *recorder_00, Recorder *recorder_01, Recorder *recorder_02) {
 	auxArithmetic->busy = false;
-
-	auxArithmetic->recorder_00.busy = recorder_00->busy;
-	auxArithmetic->recorder_00.value = recorder_00->value;
-	auxArithmetic->recorder_00.address = recorder_00->address;
-
-	auxArithmetic->recorder_01.busy = recorder_01->busy;
-	auxArithmetic->recorder_01.value = recorder_01->value;
-	auxArithmetic->recorder_01.address = recorder_01->address;
-
-	auxArithmetic->recorder_02.busy = recorder_02->busy;
-	auxArithmetic->recorder_02.value = recorder_02->value;
-	auxArithmetic->recorder_02.address = recorder_02->address;
+	auxArithmetic->recorder_00 = recorder_00;
+	auxArithmetic->recorder_01 = recorder_01;
+	auxArithmetic->recorder_02 = recorder_02;
 }
 
 void arithmeticUnitToString(ArithmeticUnit *arithmetic) 
 {
-	printf("\n\t --- Dados da Unidade Aritmetica ---\n");
-	printf("Unidade de destino: %d | Busy: %d | Address: %d \n", arithmetic->recorder_00.value, arithmetic->recorder_00.busy, arithmetic->recorder_00.address);
-	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", arithmetic->recorder_01.value, arithmetic->recorder_01.busy, arithmetic->recorder_01.address);
-	printf("Unidade variavel: %d | Busy: %d | Address: %d \n", arithmetic->recorder_02.value, arithmetic->recorder_02.busy, arithmetic->recorder_01.address);
+	printf("\n\t --- Dados da Unidade Aritmetica (%s) ---\n", arithmetic->type);
+	printf("Unidade de destino (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_00->value, arithmetic->recorder_00->busy, arithmetic->recorder_00->address);
+	printf("Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_01->value, arithmetic->recorder_01->busy, arithmetic->recorder_01->address);
+	printf("Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_02->value, arithmetic->recorder_02->busy, arithmetic->recorder_02->address);
 }
 
 void sum(ArithmeticUnit *arithmetic) 
 {
 	// Marcar como sendo usado
-	arithmetic->recorder_00.busy = true;
-	arithmetic->recorder_01.busy = true;
-	arithmetic->recorder_02.busy = true;
+	arithmetic->recorder_00->busy = true;
+	arithmetic->recorder_01->busy = true;
+	arithmetic->recorder_02->busy = true;
 
 	// Fazer operacao
-	arithmetic->recorder_00.value = arithmetic->recorder_01.value + arithmetic->recorder_02.value;
+	arithmetic->recorder_00->value = arithmetic->recorder_01->value + arithmetic->recorder_02->value;
 
 	// Marcar como nao sendo usado
-	arithmetic->recorder_00.busy = false;
-	arithmetic->recorder_01.busy = false;
-	arithmetic->recorder_02.busy = false;
+	arithmetic->recorder_00->busy = false;
+	arithmetic->recorder_01->busy = false;
+	arithmetic->recorder_02->busy = false;
 }
 
 void subtraction(ArithmeticUnit *arithmetic)
 {
 	// Marcar como sendo usado
-	arithmetic->recorder_00.busy = true;
-	arithmetic->recorder_01.busy = true;
-	arithmetic->recorder_02.busy = true;
+	arithmetic->recorder_00->busy = true;
+	arithmetic->recorder_01->busy = true;
+	arithmetic->recorder_02->busy = true;
 
 	// Fazer operacao
-	arithmetic->recorder_00.value = arithmetic->recorder_01.value - arithmetic->recorder_02.value;
+	arithmetic->recorder_00->value = arithmetic->recorder_01->value - arithmetic->recorder_02->value;
 
 	// Marcar como nao sendo usado
-	arithmetic->recorder_00.busy = false;
-	arithmetic->recorder_01.busy = false;
-	arithmetic->recorder_02.busy = false;
+	arithmetic->recorder_00->busy = false;
+	arithmetic->recorder_01->busy = false;
+	arithmetic->recorder_02->busy = false;
 }
 
 void multiplication(ArithmeticUnit *arithmetic) 
 {
 	// Marcar como sendo usado
-	arithmetic->recorder_00.busy = true;
-	arithmetic->recorder_01.busy = true;
-	arithmetic->recorder_02.busy = true;
+	arithmetic->recorder_00->busy = true;
+	arithmetic->recorder_01->busy = true;
+	arithmetic->recorder_02->busy = true;
 
 	// Fazer operacao
-	arithmetic->recorder_00.value = arithmetic->recorder_01.value * arithmetic->recorder_02.value;
+	arithmetic->recorder_00->value = arithmetic->recorder_01->value * arithmetic->recorder_02->value;
 
 	// Marcar como nao sendo usado
-	arithmetic->recorder_00.busy = false;
-	arithmetic->recorder_01.busy = false;
-	arithmetic->recorder_02.busy = false;
+	arithmetic->recorder_00->busy = false;
+	arithmetic->recorder_01->busy = false;
+	arithmetic->recorder_02->busy = false;
 }
 
 void division(ArithmeticUnit *arithmetic) 
 {
 	// Marcar como sendo usado
-	arithmetic->recorder_00.busy = true;
-	arithmetic->recorder_01.busy = true;
-	arithmetic->recorder_02.busy = true;
+	arithmetic->recorder_00->busy = true;
+	arithmetic->recorder_01->busy = true;
+	arithmetic->recorder_02->busy = true;
 
 	// Fazer operacao
-	arithmetic->recorder_00.value = arithmetic->recorder_01.value / arithmetic->recorder_02.value;
+	arithmetic->recorder_00->value = arithmetic->recorder_01->value / arithmetic->recorder_02->value;
 
 	// Marcar como nao sendo usado
-	arithmetic->recorder_00.busy = false;
-	arithmetic->recorder_01.busy = false;
-	arithmetic->recorder_02.busy = false;
+	arithmetic->recorder_00->busy = false;
+	arithmetic->recorder_01->busy = false;
+	arithmetic->recorder_02->busy = false;
 }
 
 int main(void) 
 {
-	char type[15];
-	Instruction instruction_01, instruction_02, instruction_03, instruction_04;
+	printf("Aqui 1\n");
+	InstructionComponent instructionComponent;
+	RecorderPFComponent recorderPFComponent;
+	ArithmeticUnit arithmeticSubSumComponent, arithmeticMulDivComponent;
+	MemoryComponent memoryComponent;
 
-	createInstructions();
+	createMemoryComponent(&memoryComponent);
+	createRecorderFP(&recorderPFComponent);
+	createInstructions(&instructionComponent, &recorderPFComponent);
+	
+	printf("Aqui 2\n"); 
 
-	instructionConstructor_01(&instruction_01, "add", &recorder_01, &recorder_02, &recorder_03)
-	instructionConstructor_01(&instruction_02, "subtraction", &recorder_01, &recorder_02, &recorder_03)
-	instructionConstructor_01(&instruction_02, "multiplication", &recorder_01, &recorder_02, &recorder_03)
-	instructionConstructor_01(&instruction_02, "division", &recorder_01, &recorder_02, &recorder_03)
+	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
+	{
+		printf("Aqui FOR(%d)\n", i);
+		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) {
+			arithmeticSubSumComponent.busy = true;
+			strcpy(arithmeticSubSumComponent.type, "add");
+			arithmeticSubSumComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
+			arithmeticSubSumComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
+			arithmeticSubSumComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 
-	strcpy(type, instruction_01.type)
+			arithmeticUnitToString(&arithmeticSubSumComponent);
+			sum(&arithmeticSubSumComponent);
+			arithmeticUnitToString(&arithmeticSubSumComponent);
 
-	switch() {
-		case :
-			break;
-		case :
-			break;
-		case :
-			break;
-		case :
-			break;
-		default:
-			printf("ERRO: Operacao nao reconhecida!!! \n");
+			arithmeticSubSumComponent.busy = false;
+		} else if (strcmp(instructionComponent.instructions[i].type, "sub") == 0) {
+			arithmeticSubSumComponent.busy = true;
+			strcpy(arithmeticSubSumComponent.type, "sub");
+			arithmeticSubSumComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
+			arithmeticSubSumComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
+			arithmeticSubSumComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
+
+			arithmeticUnitToString(&arithmeticSubSumComponent);
+			subtraction(&arithmeticSubSumComponent);
+			arithmeticUnitToString(&arithmeticSubSumComponent);
+
+			arithmeticSubSumComponent.busy = false;
+		} else if (strcmp(instructionComponent.instructions[i].type, "mul") == 0) {
+			arithmeticMulDivComponent.busy = true;
+			strcpy(arithmeticMulDivComponent.type, "mul");
+			arithmeticMulDivComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
+			arithmeticMulDivComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
+			arithmeticMulDivComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
+
+			arithmeticUnitToString(&arithmeticMulDivComponent);
+			multiplication(&arithmeticMulDivComponent);
+			arithmeticUnitToString(&arithmeticMulDivComponent);
+
+			arithmeticMulDivComponent.busy = false;
+		} else if (strcmp(instructionComponent.instructions[i].type, "div") == 0) {
+			if (instructionComponent.instructions[i].recorder_02->value != 0) {
+				arithmeticMulDivComponent.busy = true;
+				strcpy(arithmeticMulDivComponent.type, "div");
+				arithmeticMulDivComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
+				arithmeticMulDivComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
+				arithmeticMulDivComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
+
+				arithmeticUnitToString(&arithmeticMulDivComponent);
+				division(&arithmeticMulDivComponent);
+				arithmeticUnitToString(&arithmeticMulDivComponent);
+
+				arithmeticMulDivComponent.busy = false;
+			} else {
+				printf("\nERRO: Divisao por zero detectada.\n");
+			}
+		} else if (strcmp(instructionComponent.instructions[i].type, "load") == 0) {
+
+		} else if (strcmp(instructionComponent.instructions[i].type, "store") == 0) {
+
+		} else {
+			printf("\nERRO: Operacao nao reconhecida!\n");
+		}
 	}
+
+	printf("Aqui 3\n");
 
 	return 0;
 }
