@@ -10,9 +10,9 @@
 	aquitetura.
 */
 
-#define LENGTH_MEMORY 5
-#define LENGTH_RECORDER 3
-#define LENGTH_INSTRUCTIONS 10
+#define LENGTH_MEMORY 20
+#define LENGTH_RECORDER 5
+#define LENGTH_INSTRUCTIONS 500
 
 /*
 	Title: Celulas de Componentes
@@ -35,9 +35,10 @@ void recorderConstructor_01(Recorder *auxRecorder, int value, bool busy, int add
 }
 
 void recorderToString(Recorder *auxRecorder) {
-	printf("Valor: %d | ", auxRecorder->value);
-	printf("Usado: %d | ",auxRecorder->busy);
-	printf("Endereco: %d \n", auxRecorder->address);	
+	printf("|--- Registrador: (");
+	printf("Valor: %d\t| ", auxRecorder->value);
+	printf("Usado: %d\t| ",auxRecorder->busy);
+	printf("Endereco: %d) \n", auxRecorder->address);	
 }
 
 /* - - - - - - Memoria - - - - - - */
@@ -87,7 +88,7 @@ void createRecorderFP(RecorderPFComponent *recorderPFComponent)
 {
 	for(int i = 0; i < LENGTH_RECORDER; i++) 
 	{
-		recorderConstructor_01(&recorderPFComponent->recorders[i], i, false, i);
+		recorderConstructor_01(&recorderPFComponent->recorders[i], rand()%(1000*(i+rand()%100)), false, i);
 	}
 }
 
@@ -108,22 +109,21 @@ typedef struct
 	Instruction instructions[LENGTH_INSTRUCTIONS];
 } InstructionComponent;
 
-void instructionUnitToString(InstructionComponent *instructionComponent) 
+void instructionComponentToString(InstructionComponent *instructionComponent) 
 {
-	printf("\n\t --- Instrucoes ---\n");
+	printf("\n|--- Instrucoes --- \n| \n");
 
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		printf("Tipo: %s | ", instructionComponent->instructions[i].type); 
-		printf("\nDestino \n\t"); 
+		printf("|--- Instrucao --- \n| Tipo: %s", instructionComponent->instructions[i].type); 
+		printf("\n(Destino) \n"); 
 		recorderToString(instructionComponent->instructions[i].recorder_00);
-		printf("\nOperando_01 \n\t");
+		printf("(Operando_01) \n");
 		recorderToString(instructionComponent->instructions[i].recorder_01);
-		printf("\nOperando_02 \n\t");
+		printf("(Operando_02)\n");
 		recorderToString(instructionComponent->instructions[i].recorder_02);
+		printf("|\n|--------------- \n");
 	}
-
-	printf("\t --- \n");
 }
 
 void createInstructions(InstructionComponent *instructionComponent, RecorderPFComponent *recorderPFComponent) 
@@ -155,7 +155,7 @@ void memoryComponentToString(MemoryComponent *memoryComponent)
 	printf("\n|--- Memoria ---\n");
 	for(int i = 0; i < LENGTH_MEMORY; i++) 
 	{
-		printf("|Valor: %d\t| Endereco: %d\t| Busy: %d\n", memoryComponent->data[i].value, memoryComponent->data[i].address, memoryComponent->data[i].busy);
+		printf("| Valor: %d\t| Endereco: %d\t| Busy: %d\n", memoryComponent->data[i].value, memoryComponent->data[i].address, memoryComponent->data[i].busy);
 	}
 	printf("|------------------------------\n");
 }
@@ -183,12 +183,12 @@ void memoryUnitToString(MemoryUnit *memory)
 	// Variaveis
 	int position = (abs(memory->recorder_01->value + memory->recorder_02->value))%LENGTH_MEMORY;
 
-	printf("\n\t --- Dados da Memoria (%s) ---\n", memory->type);
-	printf("Unidade de destino (Valor: %d | Busy: %d | Address: %d) \n", memory->recorder_00->value, memory->recorder_00->busy, memory->recorder_00->address);
-	printf("Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", memory->recorder_01->value, memory->recorder_01->busy, memory->recorder_01->address);
-	printf("Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", memory->recorder_02->value, memory->recorder_02->busy, memory->recorder_02->address);
-	printf("Memoria (Valor: %d | ", memory->memory->data[position].value);
-	printf("Endereco: %d)\n", memory->memory->data[position].address);
+	printf("\n|--- Dados da Memoria (%s) ---\n", memory->type);
+	printf("| Unidade de destino (Valor: %d | Busy: %d | Address: %d) \n", memory->recorder_00->value, memory->recorder_00->busy, memory->recorder_00->address);
+	printf("| Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", memory->recorder_01->value, memory->recorder_01->busy, memory->recorder_01->address);
+	printf("| Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", memory->recorder_02->value, memory->recorder_02->busy, memory->recorder_02->address);
+	printf("| Memoria (Valor: %d | ", memory->memory->data[position].value);
+	printf("| Endereco: %d)\n", memory->memory->data[position].address);
 }
 
 void load(MemoryUnit *memory) 
@@ -256,10 +256,10 @@ void arithmeticUnitConstructor_01(ArithmeticUnit *auxArithmetic, bool busy, Reco
 
 void arithmeticUnitToString(ArithmeticUnit *arithmetic) 
 {
-	printf("\n\t --- Dados da Unidade Aritmetica (%s) ---\n", arithmetic->type);
-	printf("Unidade de destino (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_00->value, arithmetic->recorder_00->busy, arithmetic->recorder_00->address);
-	printf("Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_01->value, arithmetic->recorder_01->busy, arithmetic->recorder_01->address);
-	printf("Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_02->value, arithmetic->recorder_02->busy, arithmetic->recorder_02->address);
+	printf("\n|--- Dados da Unidade Aritmetica (%s) ---\n", arithmetic->type);
+	printf("| Unidade de destino (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_00->value, arithmetic->recorder_00->busy, arithmetic->recorder_00->address);
+	printf("| Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_01->value, arithmetic->recorder_01->busy, arithmetic->recorder_01->address);
+	printf("| Unidade variavel (Valor: %d | Busy: %d | Address: %d) \n", arithmetic->recorder_02->value, arithmetic->recorder_02->busy, arithmetic->recorder_02->address);
 }
 
 void sum(ArithmeticUnit *arithmetic) 
@@ -354,12 +354,13 @@ int main(void)
 	createMemoryComponent(&memoryComponent);
 	createRecorderFP(&recorderPFComponent);
 	createInstructions(&instructionComponent, &recorderPFComponent);
-
+	
 	memoryComponentToString(&memoryComponent);
+    // instructionComponentToString(&instructionComponent);
 
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		printf("\n||||||||||||||||||||||||||||\n");
+		printf("\n_____________________________________________________________\n");
 		
 		recorderFPToString(&recorderPFComponent);
 
