@@ -1,3 +1,13 @@
+/*
+	-----------------------------------
+	Memory.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa as 
+	informacoes necessarias para criar 
+	um componente de memoria.
+*/
+
 /* - - - - - - Memoria - - - - - - */
 typedef struct 
 {

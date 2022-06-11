@@ -1,3 +1,16 @@
+/*
+	-----------------------------------
+	ArithmeticUnit.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa a
+	unidade que faz calculos aritmeticos
+	e sera usado no trabalho.
+	-----------------------------------
+	Bibliotecas necessarias:
+	* Recorder.h
+*/
+
 /* - - - - - - Unidade de Aritmetica - - - - - - */
 typedef struct 
 {

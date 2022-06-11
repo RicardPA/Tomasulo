@@ -1,3 +1,17 @@
+/*
+	-----------------------------------
+	MemoryUnit.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa a
+	unidade que faz operacoes de acesso
+	e memoria.
+	-----------------------------------
+	Bibliotecas necessarias:
+	* Recorder.h
+	* MemoryComponent.h
+*/
+
 /* - - - - - - Unidade de Memoria - - - - - - */
 typedef struct 
 {

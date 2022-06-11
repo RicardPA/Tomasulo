@@ -1,3 +1,16 @@
+/*
+	-----------------------------------
+	Instruction.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa as 
+	informacoes necessarias para criar 
+	instrucoes.
+	-----------------------------------
+	Bibliotecas necessarias:
+	* Recorder.h
+*/
+
 /* - - - - - - Instrucao - - - - - - */
 typedef struct 
 {

@@ -1,4 +1,12 @@
-#include <stdbool.h>
+/*
+	-----------------------------------
+	Recorder.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa as 
+	informacoes necessarias para criar 
+	unidades de retencao de dados.
+*/
 
 /* - - - - - - Registrador - - - - - - */
 typedef struct recorder

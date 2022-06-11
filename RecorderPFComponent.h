@@ -1,3 +1,17 @@
+/*
+	-----------------------------------
+	RecorderPFComponent.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa um
+	componente que armazena os dados
+	que seram utilizados nas operacoes
+	de cada instrucao.
+	-----------------------------------
+	Bibliotecas necessarias:
+	* Recorder.h
+*/
+
 #define LENGTH_RECORDER 5
 
 /* - - - - - - Banco de Registradores - - - - - - */

@@ -1,3 +1,17 @@
+/*
+	-----------------------------------
+	MemoryComponent.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa um
+	componente que armazena os dados
+	que seram utilizados nas operacoes
+	de load e store.
+	-----------------------------------
+	Bibliotecas necessarias:
+	* Memory.h
+*/
+
 #define LENGTH_MEMORY 20
 
 /* - - - - - - Memoria Secundaria - - - - - - */

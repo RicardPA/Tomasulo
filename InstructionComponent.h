@@ -1,3 +1,16 @@
+/*
+	-----------------------------------
+	InstructionComponent.h 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Objetivo: Esse codigo representa um
+	componente que armazena as instrucoes
+	que seram utilizados nos testes.
+	-----------------------------------
+	Bibliotecas necessarias:
+	* Instruction.h
+*/
+
 #define LENGTH_INSTRUCTIONS 500
 
 /* - - - - - - Lista de Instrucao - - - - - - */

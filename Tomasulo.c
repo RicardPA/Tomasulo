@@ -1,3 +1,12 @@
+/*
+	-----------------------------------
+	Tomasulo.c 
+	Author: Ricardo Portilho de Andrade 
+	-----------------------------------
+	Unidade principal que sera usada
+	como partida para testes.
+*/
+
 /* Bibliotecas da Linguagem */
 #include <stdio.h>
 #include <stdlib.h>
