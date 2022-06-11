@@ -12,8 +12,6 @@
 	* Memory.h
 */
 
-#define LENGTH_MEMORY 20
-
 /* - - - - - - Memoria Secundaria - - - - - - */
 
 typedef struct 

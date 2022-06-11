@@ -14,14 +14,16 @@
 /* - - - - - - Instrucao - - - - - - */
 typedef struct 
 {
+	bool busy;
 	char type[15];
 	Recorder *recorder_00;
 	Recorder *recorder_01;
 	Recorder *recorder_02;
 } Instruction;
 
-void instructionConstructor_01(Instruction *auxInstruction, char type[], Recorder *recorder_00, Recorder *recorder_01, Recorder *recorder_02) 
+void instructionConstructor_01(Instruction *auxInstruction, char type[], Recorder *recorder_00, Recorder *recorder_01, Recorder *recorder_02, bool busy) 
 {
+	auxInstruction->busy = busy;
 	strcpy (auxInstruction->type, type);
 	auxInstruction->recorder_00 = recorder_00;
 	auxInstruction->recorder_01 = recorder_01;

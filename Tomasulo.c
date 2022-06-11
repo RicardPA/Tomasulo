@@ -14,6 +14,11 @@
 #include <string.h>
 #include <omp.h>
 
+// Valores definidos
+#define LENGTH_INSTRUCTIONS 2
+#define LENGTH_RECORDER 5
+#define LENGTH_MEMORY 20
+
 /* Bibliotecas do Projeto */
 // Unidedes de componentes
 #include "Memory.h"
@@ -49,15 +54,22 @@ int main(void)
 	createMemoryComponent(&memoryComponent);
 	createRecorderFP(&recorderPFComponent);
 	createInstructions(&instructionComponent, &recorderPFComponent);
-	
-	memoryComponentToString(&memoryComponent);
-    // instructionComponentToString(&instructionComponent);
 
+	int x = 0;
+	#pragma omp parallel num_threads(NUM_THREADS) \
+		shared(x, instructionComponent, arithmeticSubSumComponent, arithmeticMulDivComponent, memoryLoadStoreComponent, memoryComponent)
+	{
+		printf("THREAD: %d\n", omp_get_thread_num());
+		
+			for(int i = 0; i < LENGTH_INSTRUCTIONS; i++)
+				printf("*\tTHREAD: %d\n", omp_get_thread_num());
+		printf("*\tX: %d\n", x);
+	}
+
+	/*
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
 		printf("\n_____________________________________________________________\n");
-		
-		recorderFPToString(&recorderPFComponent);
 
 		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) {
 			while(arithmeticSubSumComponent.busy);
@@ -159,7 +171,7 @@ int main(void)
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
 	}
-	memoryComponentToString(&memoryComponent);
+	*/
 	
 	return 0;
 }

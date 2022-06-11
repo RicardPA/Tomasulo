@@ -12,8 +12,6 @@
 	* Recorder.h
 */
 
-#define LENGTH_RECORDER 5
-
 /* - - - - - - Banco de Registradores - - - - - - */
 
 typedef struct 
