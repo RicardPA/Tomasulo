@@ -15,9 +15,20 @@
 #include <omp.h>
 
 // Valores definidos
-#define LENGTH_INSTRUCTIONS 2
-#define LENGTH_RECORDER 5
-#define LENGTH_MEMORY 20
+#define LENGTH_INSTRUCTIONS 3 
+#define LENGTH_RECORDER 6
+#define LENGTH_MEMORY 6
+
+// Matriz necessaria para tratar dependencias
+typedef struct 
+{
+	int col[LENGTH_INSTRUCTIONS];
+} RowMatrixDepedencyRecorder;
+
+typedef struct 
+{
+	RowMatrixDepedencyRecorder row[LENGTH_RECORDER];
+} MatrixDepedencyRecorder;
 
 /* Bibliotecas do Projeto */
 // Unidedes de componentes
@@ -36,6 +47,9 @@
 
 int main(void) 
 {
+	// Matriz de dependencia
+	MatrixDepedencyRecorder matrixDepedencyRecorder;
+
 	// Componentes
 	InstructionComponent instructionComponent;
 	RecorderPFComponent recorderPFComponent;
@@ -53,25 +67,18 @@ int main(void)
 	// Inicializar componentes
 	createMemoryComponent(&memoryComponent);
 	createRecorderFP(&recorderPFComponent);
-	createInstructions(&instructionComponent, &recorderPFComponent);
+	createInstructions(&instructionComponent, &recorderPFComponent, &matrixDepedencyRecorder);
 
-	int x = 0;
-	#pragma omp parallel num_threads(NUM_THREADS) \
-		shared(x, instructionComponent, arithmeticSubSumComponent, arithmeticMulDivComponent, memoryLoadStoreComponent, memoryComponent)
-	{
-		printf("THREAD: %d\n", omp_get_thread_num());
-		
-			for(int i = 0; i < LENGTH_INSTRUCTIONS; i++)
-				printf("*\tTHREAD: %d\n", omp_get_thread_num());
-		printf("*\tX: %d\n", x);
-	}
-
-	/*
+	instructionComponentToString(&instructionComponent);
+	recorderFPToString(&recorderPFComponent);
+	
+	#pragma omp parallel for
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		printf("\n_____________________________________________________________\n");
+		int dependency[2];
 
-		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) {
+		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) 
+		{
 			while(arithmeticSubSumComponent.busy);
 
 			arithmeticSubSumComponent.busy = true;
@@ -80,13 +87,13 @@ int main(void)
 			arithmeticSubSumComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
 			arithmeticSubSumComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 
-			arithmeticUnitToString(&arithmeticSubSumComponent);
 			sum(&arithmeticSubSumComponent);
-			arithmeticUnitToString(&arithmeticSubSumComponent);
 
 			arithmeticSubSumComponent.busy = false;
 			strcpy(arithmeticSubSumComponent.type, "");
-		} else if (strcmp(instructionComponent.instructions[i].type, "sub") == 0) {
+		} 
+		else if (strcmp(instructionComponent.instructions[i].type, "sub") == 0) 
+		{
 			while(arithmeticSubSumComponent.busy);
 
 			arithmeticSubSumComponent.busy = true;
@@ -95,13 +102,13 @@ int main(void)
 			arithmeticSubSumComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
 			arithmeticSubSumComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 
-			arithmeticUnitToString(&arithmeticSubSumComponent);
 			subtraction(&arithmeticSubSumComponent);
-			arithmeticUnitToString(&arithmeticSubSumComponent);
 
 			arithmeticSubSumComponent.busy = false;
 			strcpy(arithmeticSubSumComponent.type, "");
-		} else if (strcmp(instructionComponent.instructions[i].type, "mul") == 0) {
+		} 
+		else if (strcmp(instructionComponent.instructions[i].type, "mul") == 0) 
+		{
 			while(arithmeticMulDivComponent.busy);
 
 			arithmeticMulDivComponent.busy = true;
@@ -110,32 +117,35 @@ int main(void)
 			arithmeticMulDivComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
 			arithmeticMulDivComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 
-			arithmeticUnitToString(&arithmeticMulDivComponent);
 			multiplication(&arithmeticMulDivComponent);
-			arithmeticUnitToString(&arithmeticMulDivComponent);
 
 			arithmeticMulDivComponent.busy = false;
 			strcpy(arithmeticMulDivComponent.type, "");
-		} else if (strcmp(instructionComponent.instructions[i].type, "div") == 0) {
+		} 
+		else if (strcmp(instructionComponent.instructions[i].type, "div") == 0) 
+		{
 			while(arithmeticMulDivComponent.busy);
 
-			if (instructionComponent.instructions[i].recorder_02->value != 0) {
+			if (instructionComponent.instructions[i].recorder_02->value != 0) 
+			{
 				arithmeticMulDivComponent.busy = true;
 				strcpy(arithmeticMulDivComponent.type, "div");
 				arithmeticMulDivComponent.recorder_00 = instructionComponent.instructions[i].recorder_00;
 				arithmeticMulDivComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
 				arithmeticMulDivComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 
-				arithmeticUnitToString(&arithmeticMulDivComponent);
 				division(&arithmeticMulDivComponent);
-				arithmeticUnitToString(&arithmeticMulDivComponent);
 
 				arithmeticMulDivComponent.busy = false;
 				strcpy(arithmeticMulDivComponent.type, "");
-			} else {
+			} 
+			else 
+			{
 				printf("\nERRO: Divisao por zero detectada.\n");
 			}
-		} else if (strcmp(instructionComponent.instructions[i].type, "load") == 0) {
+		} 
+		else if (strcmp(instructionComponent.instructions[i].type, "load") == 0) 
+		{
 			while(memoryLoadStoreComponent.busy);
 
 			memoryLoadStoreComponent.busy = true;
@@ -145,13 +155,13 @@ int main(void)
 			memoryLoadStoreComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 			memoryLoadStoreComponent.memory = &memoryComponent;
 
-			memoryUnitToString(&memoryLoadStoreComponent);
 			load(&memoryLoadStoreComponent);
-			memoryUnitToString(&memoryLoadStoreComponent);
 
 			memoryLoadStoreComponent.busy = false;
 			strcpy(memoryLoadStoreComponent.type, "");
-		} else if (strcmp(instructionComponent.instructions[i].type, "store") == 0) {
+		} 
+		else if (strcmp(instructionComponent.instructions[i].type, "store") == 0) 
+		{
 			while(memoryLoadStoreComponent.busy);
 
 			memoryLoadStoreComponent.busy = true;
@@ -161,17 +171,18 @@ int main(void)
 			memoryLoadStoreComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 			memoryLoadStoreComponent.memory = &memoryComponent;
 
-			memoryUnitToString(&memoryLoadStoreComponent);
 			store(&memoryLoadStoreComponent);
-			memoryUnitToString(&memoryLoadStoreComponent);
 
 			memoryLoadStoreComponent.busy = false;
 			strcpy(memoryLoadStoreComponent.type, "");
-		} else {
+		} 
+		else 
+		{
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
 	}
-	*/
+
+	recorderFPToString(&recorderPFComponent);
 	
 	return 0;
 }
