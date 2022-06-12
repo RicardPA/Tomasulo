@@ -18,6 +18,7 @@
 #define LENGTH_INSTRUCTIONS 3 
 #define LENGTH_RECORDER 6
 #define LENGTH_MEMORY 6
+#define LENGTH_BUFFER (LENGTH_RECORDER*2)
 
 // Matriz necessaria para tratar dependencias
 typedef struct 
@@ -58,7 +59,7 @@ void printMatrixDepedencyRecorder(MatrixDepedencyRecorder *matrixDepedencyRecord
 	}
 }
 
-int checkDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int positionInstruction, int positionRecorder)
+int checkTrueDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int positionInstruction, int positionRecorder)
 {
 	int instructionDependency = -1;
 
@@ -73,6 +74,22 @@ int checkDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int positi
 	return instructionDependency;
 }
 
+int checkFalseDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int positionInstruction, int positionRecorder)
+{
+	int instructionDependency = -1;
+
+	for(int i = positionInstruction+1; i < LENGTH_INSTRUCTIONS && instructionDependency == -1; i++) 
+	{
+		if(matrixDepedencyRecorder->row[positionRecorder].col[i] == 1) 
+		{
+			instructionDependency = i;		
+		}
+	}
+
+	return instructionDependency;
+}
+
+
 /* Bibliotecas do Projeto */
 // Unidedes de componentes
 #include "Memory.h"
@@ -82,11 +99,10 @@ int checkDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int positi
 #include "RecorderPFComponent.h"
 #include "InstructionComponent.h"
 #include "MemoryComponent.h"
+#include "BufferComponent.h "
 // Unidades de operacao
 #include "MemoryUnit.h"
 #include "ArithmeticUnit.h"
-
-#define NUM_THREADS 2
 
 int main(void) 
 {
@@ -97,6 +113,7 @@ int main(void)
 	InstructionComponent instructionComponent;
 	RecorderPFComponent recorderPFComponent;
 	MemoryComponent memoryComponent;
+	BufferComponent buffer;
 
 	// Unidades de operacao
 	ArithmeticUnit arithmeticSubSumComponent, arithmeticMulDivComponent;
@@ -110,25 +127,36 @@ int main(void)
 	// Inicializar componentes
 	createMatrixDepedencyRecorder(&matrixDepedencyRecorder);
 	createMemoryComponent(&memoryComponent);
+	createBuffer(&buffer);
 	createRecorderFP(&recorderPFComponent);
 	createInstructions(&instructionComponent, &recorderPFComponent, &matrixDepedencyRecorder);
 
 	instructionComponentToString(&instructionComponent);
 	recorderFPToString(&recorderPFComponent);
-	
+
 	#pragma omp parallel for
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
 		// Verificar dependencias
-		int instructionDependency_01 = 0;
-		int instructionDependency_02 = 0;
+		int instructionTrueDependency[] = {-1, -1, -1};
+		int instructionFalseDependency[] = {-1, -1};
 
-		instructionDependency_01 = checkDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_01->address);
-		instructionDependency_02 = checkDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_02->address);
+		instructionTrueDependency[0] = checkTrueDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_00->address);
+		instructionTrueDependency[1] = checkTrueDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_01->address);
+		instructionTrueDependency[2] = checkTrueDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_02->address);
 
-		while(instructionDependency_01 >= 0 && !instructionComponent.instructions[instructionDependency_01].done == true);
-		while(instructionDependency_02 >= 0 && !instructionComponent.instructions[instructionDependency_02].done == true);
-
+		instructionFalseDependency[0] = checkFalseDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_01->address);
+		instructionFalseDependency[1] = checkFalseDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_02->address);
+		
+		while(instructionTrueDependency[0] >= 0 && instructionComponent.instructions[instructionTrueDependency[0]].done == false);
+		while(instructionTrueDependency[1] >= 0 && instructionComponent.instructions[instructionTrueDependency[1]].done == false);
+		while(instructionTrueDependency[2] >= 0 && instructionComponent.instructions[instructionTrueDependency[2]].done == false);
+		
+		if(instructionFalseDependency[0] != -1)
+			alocBuffer(&buffer, &instructionComponent.instructions[i], instructionComponent.instructions[i].recorder_01);
+		if(instructionFalseDependency[1] != -1)
+			alocBuffer(&buffer, &instructionComponent.instructions[i], instructionComponent.instructions[i].recorder_02);
+	
 		// Executar instrucoes
 		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) 
 		{
@@ -187,6 +215,7 @@ int main(void)
 				arithmeticMulDivComponent.recorder_01 = instructionComponent.instructions[i].recorder_01;
 				arithmeticMulDivComponent.recorder_02 = instructionComponent.instructions[i].recorder_02;
 
+
 				division(&arithmeticMulDivComponent);
 
 				arithmeticMulDivComponent.busy = false;
@@ -234,10 +263,19 @@ int main(void)
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
 
+		if(instructionFalseDependency[0] != -1)
+			desalocBuffer(&buffer, instructionComponent.instructions[i].recorder_01);
+		if(instructionFalseDependency[1] != -1)
+			desalocBuffer(&buffer, instructionComponent.instructions[i].recorder_02);
+
 		instructionComponent.instructions[i].done = true;
 	}
-	printf("\n\n");
+
+	printf("\n\nBuffer: \n");
+	bufferToString(&buffer);
+
+	printf("\n\nRegistrador: \n");
 	recorderFPToString(&recorderPFComponent);
-	
+
 	return 0;
 }

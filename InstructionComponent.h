@@ -20,22 +20,20 @@ typedef struct
 
 void createInstructions(InstructionComponent *instructionComponent, RecorderPFComponent *recorderPFComponent, MatrixDepedencyRecorder *matrixDepedencyRecorder) 
 {
-	// Caminhar pelas linhas da matriz de dependencia
-	for(int i = 0; i < LENGTH_RECORDER; i++) {
-		// Caminhar pelas colunas da matriz de dependencia
-		for(int j = 0; j < LENGTH_INSTRUCTIONS; j++) {
-			matrixDepedencyRecorder->row[i].col[j] = 0;
-		}
-	}
-
 	char types[6][15] = {"add", "sub", "mul", "div", "load", "store"};
 	instructionConstructor_01(&instructionComponent->instructions[0], types[rand()%6], &recorderPFComponent->recorders[0], &recorderPFComponent->recorders[1], &recorderPFComponent->recorders[2], false);
+	matrixDepedencyRecorder->row[1].col[0] = 2;
+	matrixDepedencyRecorder->row[2].col[0] = 2;
 	matrixDepedencyRecorder->row[0].col[0] = 1;
 
 	instructionConstructor_01(&instructionComponent->instructions[1], types[rand()%6], &recorderPFComponent->recorders[3], &recorderPFComponent->recorders[4], &recorderPFComponent->recorders[5], false);
+	matrixDepedencyRecorder->row[4].col[1] = 2;
+	matrixDepedencyRecorder->row[5].col[1] = 2;
 	matrixDepedencyRecorder->row[3].col[1] = 1;
 
 	instructionConstructor_01(&instructionComponent->instructions[2], types[rand()%6], &recorderPFComponent->recorders[4], &recorderPFComponent->recorders[0], &recorderPFComponent->recorders[3], false);
+	matrixDepedencyRecorder->row[0].col[2] = 2;
+	matrixDepedencyRecorder->row[3].col[2] = 2;
 	matrixDepedencyRecorder->row[4].col[2] = 1;
 }
 
