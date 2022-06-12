@@ -30,6 +30,49 @@ typedef struct
 	RowMatrixDepedencyRecorder row[LENGTH_RECORDER];
 } MatrixDepedencyRecorder;
 
+void createMatrixDepedencyRecorder(MatrixDepedencyRecorder *matrixDepedencyRecorder)
+{
+	// Linhas 
+	for(int i = 0; i < LENGTH_RECORDER; i++) 
+	{
+		// Colunas
+		for(int j = 0; j < LENGTH_INSTRUCTIONS; j++) 
+		{
+			matrixDepedencyRecorder->row[i].col[j] = 0;
+		}
+	}
+}
+
+void printMatrixDepedencyRecorder(MatrixDepedencyRecorder *matrixDepedencyRecorder)
+{
+	// Linhas 
+	for(int i = 0; i < LENGTH_RECORDER; i++) 
+	{
+		printf("Recorder(%d)\t| ", i);
+		// Colunas
+		for(int j = 0; j < LENGTH_INSTRUCTIONS; j++) 
+		{
+			printf("%d ", matrixDepedencyRecorder->row[i].col[j]);
+		}
+		printf("|\n");
+	}
+}
+
+int checkDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int positionInstruction, int positionRecorder)
+{
+	int instructionDependency = -1;
+
+	for(int i = positionInstruction-1; i >= 0 && instructionDependency == -1; i--) 
+	{
+		if(matrixDepedencyRecorder->row[positionRecorder].col[i] == 1) 
+		{
+			instructionDependency = i;		
+		}
+	}
+
+	return instructionDependency;
+}
+
 /* Bibliotecas do Projeto */
 // Unidedes de componentes
 #include "Memory.h"
@@ -65,6 +108,7 @@ int main(void)
 	memoryLoadStoreComponent.busy = false;
 
 	// Inicializar componentes
+	createMatrixDepedencyRecorder(&matrixDepedencyRecorder);
 	createMemoryComponent(&memoryComponent);
 	createRecorderFP(&recorderPFComponent);
 	createInstructions(&instructionComponent, &recorderPFComponent, &matrixDepedencyRecorder);
@@ -75,8 +119,17 @@ int main(void)
 	#pragma omp parallel for
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
 	{
-		int dependency[2];
+		// Verificar dependencias
+		int instructionDependency_01 = 0;
+		int instructionDependency_02 = 0;
 
+		instructionDependency_01 = checkDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_01->address);
+		instructionDependency_02 = checkDependency(&matrixDepedencyRecorder, i, instructionComponent.instructions[i].recorder_02->address);
+
+		while(instructionDependency_01 >= 0 && !instructionComponent.instructions[instructionDependency_01].done == true);
+		while(instructionDependency_02 >= 0 && !instructionComponent.instructions[instructionDependency_02].done == true);
+
+		// Executar instrucoes
 		if (strcmp(instructionComponent.instructions[i].type, "add") == 0) 
 		{
 			while(arithmeticSubSumComponent.busy);
@@ -180,8 +233,10 @@ int main(void)
 		{
 			printf("\nERRO: Operacao nao reconhecida!\n");
 		}
-	}
 
+		instructionComponent.instructions[i].done = true;
+	}
+	printf("\n\n");
 	recorderFPToString(&recorderPFComponent);
 	
 	return 0;
