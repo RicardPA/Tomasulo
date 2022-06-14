@@ -99,7 +99,7 @@ int checkFalseDependency(MatrixDepedencyRecorder *matrixDepedencyRecorder, int p
 #include "RecorderPFComponent.h"
 #include "InstructionComponent.h"
 #include "MemoryComponent.h"
-#include "BufferComponent.h "
+#include "BufferComponent.h"
 // Unidades de operacao
 #include "MemoryUnit.h"
 #include "ArithmeticUnit.h"
@@ -129,10 +129,14 @@ int main(void)
 	createMemoryComponent(&memoryComponent);
 	createBuffer(&buffer);
 	createRecorderFP(&recorderPFComponent);
-	createInstructions(&instructionComponent, &recorderPFComponent, &matrixDepedencyRecorder);
+	createInstructionsRandom(&instructionComponent, &recorderPFComponent, &matrixDepedencyRecorder);
 
+	printf("\n\n----------------------------- [Antes] ---------------------------------: \n");
 	instructionComponentToString(&instructionComponent);
 	recorderFPToString(&recorderPFComponent);
+	printf("\n\nBuffer: \n");
+	bufferToString(&buffer);
+	memoryComponentToString(&memoryComponent);
 
 	#pragma omp parallel for
 	for(int i = 0; i < LENGTH_INSTRUCTIONS; i++) 
@@ -271,11 +275,14 @@ int main(void)
 		instructionComponent.instructions[i].done = true;
 	}
 
+	printf("\n\n----------------------------- [Depois] ---------------------------------: \n");
 	printf("\n\nBuffer: \n");
 	bufferToString(&buffer);
 
 	printf("\n\nRegistrador: \n");
 	recorderFPToString(&recorderPFComponent);
+
+	memoryComponentToString(&memoryComponent);
 
 	return 0;
 }
